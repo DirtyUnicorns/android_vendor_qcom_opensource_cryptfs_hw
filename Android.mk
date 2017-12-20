@@ -1,3 +1,4 @@
+ifneq ($(USING_DEVICE_CRYPT),true)
 ifeq ($(TARGET_HW_DISK_ENCRYPTION),true)
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
@@ -38,4 +39,5 @@ LOCAL_CFLAGS += -DUSE_ICE_FOR_STORAGE_ENCRYPTION
 endif
 
 include $(BUILD_SHARED_LIBRARY)
+endif
 endif
