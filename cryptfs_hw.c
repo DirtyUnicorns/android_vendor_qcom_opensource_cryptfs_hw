@@ -51,8 +51,8 @@
  */
 #define ERR_MAX_PASSWORD_ATTEMPTS			-10
 #define MAX_PASSWORD_LEN				32
-#define QCOM_ICE_STORAGE_UFS				1
-#define QCOM_ICE_STORAGE_SDCC				2
+#define QTI_ICE_STORAGE_UFS				1
+#define QTI_ICE_STORAGE_SDCC				2
 #define SET_HW_DISK_ENC_KEY				1
 #define UPDATE_HW_DISK_ENC_KEY				2
 
@@ -157,6 +157,7 @@ static int __cryptfs_hw_wipe_clear_key(enum cryptfs_hw_key_management_usage_type
 static int cryptfs_hw_wipe_key(enum cryptfs_hw_key_management_usage_type usage)
 {
 	int32_t ret;
+
 	ret = __cryptfs_hw_wipe_clear_key(usage, CRYPTFS_HW_KMS_WIPE_KEY);
 	if (ret) {
 		SLOGE("Error::ioctl call to wipe the encryption key for usage %d failed with ret = %d, errno = %d\n",
@@ -237,10 +238,10 @@ static int map_usage(int usage)
 {
     int storage_type = is_ice_enabled();
     if (usage == CRYPTFS_HW_KM_USAGE_DISK_ENCRYPTION) {
-        if (storage_type == QCOM_ICE_STORAGE_UFS) {
+        if (storage_type == QTI_ICE_STORAGE_UFS) {
             return CRYPTFS_HW_KM_USAGE_UFS_ICE_DISK_ENCRYPTION;
         }
-        else if (storage_type == QCOM_ICE_STORAGE_SDCC) {
+        else if (storage_type == QTI_ICE_STORAGE_SDCC) {
             return CRYPTFS_HW_KM_USAGE_SDCC_ICE_DISK_ENCRYPTION;
         }
     }
@@ -272,12 +273,11 @@ static int is_qseecom_up()
     char value[PROPERTY_VALUE_MAX] = {0};
 
     for (; i<CRYPTFS_HW_UP_CHECK_COUNT; i++) {
-        property_get("sys.listeners.registered", value, "");
+        property_get("sys.keymaster.loaded", value, "");
         if (!strncmp(value, "true", PROPERTY_VALUE_MAX))
             return 1;
         usleep(100000);
     }
-    SLOGE("%s Qseecom daemon timed out", __func__);
     return 0;
 }
 
@@ -288,7 +288,7 @@ static int is_qseecom_up()
 static int set_key(const char* currentpasswd, const char* passwd, const char* enc_mode, int operation)
 {
     int err = -1;
-    if (is_hw_disk_encryption(enc_mode) && is_qseecom_up()) {
+    if (is_hw_disk_encryption(enc_mode)) {
         unsigned char* tmp_passwd = get_tmp_passwd(passwd);
         unsigned char* tmp_currentpasswd = get_tmp_passwd(currentpasswd);
         if (tmp_passwd) {
@@ -345,10 +345,10 @@ int is_ice_enabled(void)
       /* All UFS based devices has ICE in it. So we dont need
        * to check if corresponding device exists or not
        */
-      storage_type = QCOM_ICE_STORAGE_UFS;
+      storage_type = QTI_ICE_STORAGE_UFS;
     } else if (strstr(prop_storage, "sdhc")) {
       if (access("/dev/icesdcc", F_OK) != -1)
-        storage_type = QCOM_ICE_STORAGE_SDCC;
+        storage_type = QTI_ICE_STORAGE_SDCC;
     }
   }
   return storage_type;
@@ -356,9 +356,7 @@ int is_ice_enabled(void)
 
 int clear_hw_device_encryption_key()
 {
-	if(is_qseecom_up())
-		return cryptfs_hw_wipe_key(map_usage(CRYPTFS_HW_KM_USAGE_DISK_ENCRYPTION));
-	return 0;
+	return cryptfs_hw_wipe_key(map_usage(CRYPTFS_HW_KM_USAGE_DISK_ENCRYPTION));
 }
 
 static int get_keymaster_version()
@@ -378,13 +376,6 @@ int should_use_keymaster()
 {
     /*
      * HW FDE key should be tied to keymaster
-     * if version is above 0.3. this is to
-     * support msm8909 go target.
      */
-     int rc = 1;
-     if (get_keymaster_version() == KEYMASTER_MODULE_API_VERSION_0_3) {
-        SLOGI("Keymaster version is 0.3");
-        rc = 0;
-     }
-     return rc;
+    return 1;
 }

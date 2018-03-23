@@ -1,3 +1,4 @@
+ifeq ($(TARGET_USES_QSSI),true)
 ifeq ($(TARGET_HW_DISK_ENCRYPTION),true)
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
@@ -25,7 +26,7 @@ LOCAL_MODULE_TAGS       := optional
 LOCAL_MODULE:= libcryptfs_hw
 LOCAL_SHARED_LIBRARIES := $(commonSharedLibraries)
 
-LOCAL_MODULE_OWNER := qcom
+LOCAL_MODULE_OWNER := qti
 
 # USE_ICE_FOR_STORAGE_ENCRYPTION would be true in future if
 # TARGET_USE_EMMC_USE_ICE is set
@@ -34,4 +35,5 @@ LOCAL_CFLAGS += -DUSE_ICE_FOR_STORAGE_ENCRYPTION
 endif
 
 include $(BUILD_SHARED_LIBRARY)
+endif
 endif
