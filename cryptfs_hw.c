@@ -274,20 +274,6 @@ static unsigned char* get_tmp_passwd(const char* passwd)
     return tmp_passwd;
 }
 
-static int is_qseecom_up()
-{
-    int i = 0;
-    char value[PROPERTY_VALUE_MAX] = {0};
-
-    for (; i<CRYPTFS_HW_UP_CHECK_COUNT; i++) {
-        property_get("vendor.sys.keymaster.loaded", value, "");
-        if (!strncmp(value, "true", PROPERTY_VALUE_MAX))
-            return 1;
-        usleep(100000);
-    }
-    return 0;
-}
-
 /*
  * For NON-ICE targets, it would return 0 on success. On ICE based targets,
  * it would return key index in the ICE Key LUT
